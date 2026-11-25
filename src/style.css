@@ -1,0 +1,536 @@
+/*
+ * Only the Latin subsets: the fontsource index files pull in every script,
+ * and the bundler would precache all of them.
+ */
+@font-face {
+  font-family: "Martian Mono Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url("@fontsource-variable/martian-mono/files/martian-mono-latin-wght-normal.woff2")
+    format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Instrument Sans Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400 700;
+  src: url("@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2")
+    format("woff2-variations");
+}
+
+:root {
+  color-scheme: dark;
+  /*
+   * Loudred's palette (Pokedex #294, the app icon): its lavender body for
+   * calm levels, the gold rim of its mouth for caution, the pink inside for
+   * harm, and its shadow purple for the surfaces.
+   */
+  --bg: #120f1a;
+  --face: #1a1625;
+  --raised: #252036;
+  --line: #322b48;
+  --grid: #241f34;
+  --ink: #eeeaf8;
+  --muted: #8f88aa;
+  --safe: #b4ace6;
+  --caution: #ffde73;
+  --harmful: #f0609c;
+  --accent: var(--safe);
+  --mono: "Martian Mono Variable", ui-monospace, monospace;
+  --sans: "Instrument Sans Variable", system-ui, sans-serif;
+  --gutter: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 520px;
+  height: 100dvh;
+  margin: 0 auto;
+  padding: max(env(safe-area-inset-top), 12px) var(--gutter) max(env(safe-area-inset-bottom), 16px);
+  overflow: hidden;
+}
+
+#app[data-zone="caution"] {
+  --accent: var(--caution);
+}
+#app[data-zone="harmful"] {
+  --accent: var(--harmful);
+}
+
+/* Header */
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mark {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.cal-chip {
+  border: 1px solid var(--line);
+  background: var(--face);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.cal-chip[data-calibrated="false"] {
+  color: var(--caution);
+  border-color: color-mix(in oklch, var(--caution) 35%, transparent);
+}
+
+/* Big number */
+
+.readout {
+  text-align: center;
+  padding-top: 4px;
+}
+
+.level {
+  margin: 0;
+  font-family: var(--mono);
+  font-weight: 300;
+  font-size: clamp(88px, 34vw, 148px);
+  line-height: 1;
+  letter-spacing: -0.06em;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  transition: color 300ms;
+}
+#app[data-state="idle"] .level {
+  color: var(--muted);
+}
+.decimal {
+  font-size: 0.32em;
+  letter-spacing: 0;
+  opacity: 0.7;
+}
+
+.unit {
+  margin: 6px 0 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.overload {
+  color: var(--bg);
+  background: var(--harmful);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.overload[hidden] {
+  display: none;
+}
+
+.describe {
+  margin: 10px 0 0;
+  font-size: 17px;
+}
+
+/* Bar meter: a zone gradient, masked into segments, covered from the right. */
+
+.bar-track {
+  position: relative;
+  height: 22px;
+  border-radius: 4px;
+  background: linear-gradient(
+    to right,
+    var(--safe) 0 45.45%,
+    var(--caution) 45.45% 59.09%,
+    var(--harmful) 59.09%
+  );
+  mask: repeating-linear-gradient(to right, #000 0 4px, transparent 4px 6px);
+}
+
+.bar-cover {
+  position: absolute;
+  inset: 0 0 0 0%;
+  background: var(--raised);
+  transition: left 80ms linear;
+}
+
+.bar-max {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 4px;
+  background: var(--ink);
+  opacity: 0;
+}
+#app[data-state="running"] .bar-max {
+  opacity: 0.9;
+}
+
+/* 20..130 dB maps onto the track; labels sit at their positions. */
+.bar-scale {
+  position: relative;
+  height: 14px;
+  margin-top: 4px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+}
+.bar-scale span {
+  position: absolute;
+  transform: translateX(-50%);
+}
+.bar-scale span:nth-child(1) {
+  left: 0%;
+  transform: none;
+}
+.bar-scale span:nth-child(2) {
+  left: 18.18%;
+}
+.bar-scale span:nth-child(3) {
+  left: 36.36%;
+}
+.bar-scale span:nth-child(4) {
+  left: 54.55%;
+}
+.bar-scale span:nth-child(5) {
+  left: 72.73%;
+}
+.bar-scale span:nth-child(6) {
+  left: 90.91%;
+}
+
+/* History graph */
+
+.graph {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 90px;
+  background: var(--face);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.graph canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.graph-label {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+}
+
+/* Stats */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.stats div {
+  background: var(--face);
+  padding: 8px 4px;
+  text-align: center;
+}
+.stats dt {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.stats dd {
+  margin: 2px 0 0;
+  font-family: var(--mono);
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}
+
+.exposure {
+  margin: -4px 0 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--muted);
+  min-height: 1.4em;
+}
+#clock {
+  font-family: var(--mono);
+}
+
+/* Controls */
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.toggles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.seg {
+  display: flex;
+  margin: 0;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--face);
+  min-width: 0;
+}
+.seg legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.seg label {
+  flex: 1;
+  position: relative;
+}
+.seg input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.seg span {
+  display: block;
+  padding: 9px 0;
+  text-align: center;
+  border-radius: 7px;
+  font-size: 14px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.seg input:checked + span {
+  background: var(--raised);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.seg input:focus-visible + span {
+  outline: 2px solid var(--accent);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 10px;
+}
+
+.actions button,
+.sheet-actions button {
+  border: 0;
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.reset {
+  background: var(--raised);
+}
+.reset:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.start {
+  background: var(--safe);
+  color: var(--bg);
+}
+#app[data-state="running"] .start {
+  background: var(--raised);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--harmful);
+}
+.start:disabled {
+  opacity: 0.6;
+}
+
+.error {
+  margin: 0;
+  color: var(--harmful);
+  font-size: 14px;
+}
+.error[hidden] {
+  display: none;
+}
+
+/* Calibration sheet */
+
+dialog {
+  width: min(520px, 100%);
+  max-width: 100%;
+  max-height: 92dvh;
+  margin: auto auto 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: 18px 18px 0 0;
+  background: var(--face);
+  color: var(--ink);
+}
+dialog::backdrop {
+  background: rgb(0 0 0 / 0.6);
+}
+
+.sheet {
+  padding: 20px var(--gutter) max(env(safe-area-inset-bottom), 20px);
+}
+.sheet h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+.sheet h3 {
+  margin: 20px 0 8px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.cal-live {
+  margin: 16px 0 8px;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 44px;
+  font-variant-numeric: tabular-nums;
+}
+#cal-unit {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.offset {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(0, 1.6fr) repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  align-items: center;
+}
+.offset button {
+  border: 1px solid var(--line);
+  background: var(--raised);
+  border-radius: 10px;
+  padding: 12px 0;
+  font-family: var(--mono);
+  font-size: 14px;
+  cursor: pointer;
+}
+.offset output {
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 18px;
+}
+
+input[type="range"] {
+  width: 100%;
+  margin: 16px 0 0;
+  accent-color: var(--safe);
+}
+
+.input-info {
+  margin: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+}
+.input-info div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.input-info dt {
+  color: var(--muted);
+}
+.input-info dd {
+  margin: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.input-info .bad {
+  color: var(--caution);
+}
+
+.sheet-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  margin-top: 22px;
+}
+.sheet-actions .quiet {
+  background: var(--raised);
+}
+.sheet-actions .primary {
+  background: var(--safe);
+  color: var(--bg);
+}
+
+/* Short phones: give the graph less, keep the controls reachable. */
+@media (max-height: 640px) {
+  #app {
+    gap: 10px;
+  }
+  .level {
+    font-size: clamp(72px, 26vw, 110px);
+  }
+  .describe {
+    margin-top: 4px;
+  }
+}

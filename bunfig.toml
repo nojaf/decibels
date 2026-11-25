@@ -1,0 +1,7 @@
+[install]
+linker = "isolated"
+
+[fmt]
+flavor = "oxfmt"
+ignorePatterns = ["dist/**"]
+sortImports = true

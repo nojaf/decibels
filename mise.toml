@@ -1,0 +1,18 @@
+[tools]
+bun = "1.4.5"
+
+[tasks.install]
+description = "Install dependencies"
+run = "bun install"
+
+[tasks.dev]
+description = "Dev server with hot reload"
+run = "bun run dev"
+
+[tasks.build]
+description = "Type-check and build the PWA into dist/"
+run = "bun run build"
+
+[tasks.ci]
+description = "Format check, lint, type-check, test"
+run = "bun run ci"

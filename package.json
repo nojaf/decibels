@@ -1,0 +1,30 @@
+{
+  "name": "decibels",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --hot scripts/dev.ts",
+    "build": "bun check && bun scripts/build.ts",
+    "preview": "bun scripts/preview.ts",
+    "test": "bun test src",
+    "test:browser": "bun test ./e2e",
+    "typecheck": "bun check",
+    "lint": "oxlint",
+    "ci": "bun fmt --check && bun run lint && bun run typecheck && bun run test",
+    "icons": "bun scripts/make-icons.ts"
+  },
+  "dependencies": {
+    "@fontsource-variable/instrument-sans": "^5.3.0",
+    "@fontsource-variable/martian-mono": "^5.3.0"
+  },
+  "devDependencies": {
+    "@nojaf/oxlint-plugin-annotate-non-primitives": "^0.1.1",
+    "@types/bun": "^1.4.5",
+    "oxlint": "^1.95.0",
+    "oxlint-tsgolint": "^7.0.2008",
+    "sharp": "^0.35.5",
+    "typescript": "^7.0.2"
+  },
+  "packageManager": "bun@1.4.5"
+}

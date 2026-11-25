@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Decibels</title>
+    <meta name="description" content="A sound level meter for your phone. Works offline." />
+    <meta name="theme-color" content="#120f1a" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Decibels" />
+    <link rel="icon" href="./icons/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="./icons/icon-180.png" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main id="app" data-state="idle">
+      <header class="top">
+        <h1 class="mark">decibels</h1>
+        <button type="button" class="cal-chip" id="open-cal">
+          <span id="cal-state">Uncalibrated</span>
+        </button>
+      </header>
+
+      <section class="readout" aria-live="off">
+        <p class="level" id="level-wrap">
+          <span id="level">--</span><span class="decimal" id="decimal">.-</span>
+        </p>
+        <p class="unit">
+          <span id="unit">dB(A)</span>
+          <span class="dot" aria-hidden="true">·</span>
+          <span id="response-label">Fast</span>
+          <span class="overload" id="overload" hidden>Overload</span>
+        </p>
+        <p class="describe" id="describe">Tap start to listen</p>
+      </section>
+
+      <div class="bar" aria-hidden="true">
+        <div class="bar-track">
+          <div class="bar-cover" id="bar-cover"></div>
+          <div class="bar-max" id="bar-max"></div>
+        </div>
+        <div class="bar-scale">
+          <span>20</span><span>40</span><span>60</span><span>80</span><span>100</span
+          ><span>120</span>
+        </div>
+      </div>
+
+      <div class="graph">
+        <canvas id="graph" aria-label="Level over the last minute" role="img"></canvas>
+        <span class="graph-label">last 60 s</span>
+      </div>
+
+      <dl class="stats">
+        <div>
+          <dt>Leq</dt>
+          <dd id="leq">--</dd>
+        </div>
+        <div>
+          <dt>Min</dt>
+          <dd id="min">--</dd>
+        </div>
+        <div>
+          <dt>Max</dt>
+          <dd id="max">--</dd>
+        </div>
+        <div>
+          <dt>Peak</dt>
+          <dd id="peak">--</dd>
+        </div>
+      </dl>
+      <p class="exposure"><span id="clock">0:00</span><span id="exposure"></span></p>
+
+      <footer class="controls">
+        <div class="toggles">
+          <fieldset class="seg" id="weighting">
+            <legend>Weighting</legend>
+            <label><input type="radio" name="weighting" value="A" checked /><span>dBA</span></label>
+            <label><input type="radio" name="weighting" value="Z" /><span>dBZ</span></label>
+          </fieldset>
+          <fieldset class="seg" id="response">
+            <legend>Response</legend>
+            <label
+              ><input type="radio" name="response" value="fast" checked /><span>Fast</span></label
+            >
+            <label><input type="radio" name="response" value="slow" /><span>Slow</span></label>
+          </fieldset>
+        </div>
+        <div class="actions">
+          <button type="button" class="reset" id="reset" disabled>Reset</button>
+          <button type="button" class="start" id="start">Start</button>
+        </div>
+        <p class="error" id="error" role="alert" hidden></p>
+      </footer>
+    </main>
+
+    <dialog id="cal" aria-labelledby="cal-title">
+      <form method="dialog" class="sheet">
+        <h2 id="cal-title">Calibrate</h2>
+        <p class="hint">
+          Every phone microphone hears differently. Put a reference meter, or a phone app you trust,
+          right next to this one, make a steady noise, and nudge the offset until both agree.
+        </p>
+        <p class="cal-live"><span id="cal-level">--</span> <span id="cal-unit">dB(A)</span></p>
+        <div class="offset">
+          <button type="button" data-nudge="-1" aria-label="Down 1 dB">−1</button>
+          <button type="button" data-nudge="-0.1" aria-label="Down 0.1 dB">−.1</button>
+          <output id="offset-value" for="offset">+100.0</output>
+          <button type="button" data-nudge="0.1" aria-label="Up 0.1 dB">+.1</button>
+          <button type="button" data-nudge="1" aria-label="Up 1 dB">+1</button>
+        </div>
+        <input
+          type="range"
+          id="offset"
+          min="40"
+          max="160"
+          step="0.1"
+          value="100"
+          aria-label="Offset in dB"
+        />
+
+        <h3>Microphone</h3>
+        <dl class="input-info" id="input-info">
+          <div>
+            <dt>Status</dt>
+            <dd>Start the meter to see what the browser gave us.</dd>
+          </div>
+        </dl>
+
+        <div class="sheet-actions">
+          <button type="button" id="cal-default" class="quiet">Reset to default</button>
+          <button value="close" class="primary">Done</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
