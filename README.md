@@ -8,6 +8,9 @@ meter, the last minute as a graph, Leq, min, max and peak for the session, and
 how long a day the session's Leq is safe by the NIOSH limit (85 dBA for 8
 hours, halved for every 3 dB more).
 
+Each Start begins a new session. After Stop, the last session stays on screen
+until a Start opens the microphone, or until Reset.
+
 ## Running it
 
 ```bash

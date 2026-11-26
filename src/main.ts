@@ -164,6 +164,9 @@ async function start(): Promise<void> {
         void stop("The microphone stopped. Tap start to try again.");
       },
     });
+    // Every Start is a new session. The last one stays on screen until here,
+    // so a failed start keeps it, and Stop leaves it there to read.
+    session.reset();
     showInputInfo(mic.info);
     app.dataset["state"] = "running";
     startBtn.textContent = "Stop";

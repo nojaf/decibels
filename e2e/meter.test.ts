@@ -171,6 +171,24 @@ test("the service worker precaches the app", async (): Promise<void> => {
   expect(cached).toBeGreaterThan(8);
 });
 
+test("Stop keeps the session on screen, Start begins a new one", async (): Promise<void> => {
+  // The meter has been running since the first test.
+  await view!.click("#start");
+  await until(`document.querySelector("#app").dataset.state === "idle"`);
+  // stop() finishes tearing down after the state flips; let it settle.
+  await Bun.sleep(300);
+  const stopped: string = await text("#clock");
+  expect(stopped).not.toBe("0:00");
+  await Bun.sleep(300);
+  expect(await text("#clock")).toBe(stopped);
+
+  await view!.click("#start");
+  await until(`document.querySelector("#app").dataset.state === "running"`);
+  // An empty session also shows 0:00; wait for frames of the new one.
+  await until(`document.querySelector("#leq").textContent !== "--"`);
+  expect(await text("#clock")).toBe("0:00");
+});
+
 test("no errors in the console", (): void => {
   expect(errors).toEqual([]);
 });
